@@ -1,1 +1,10 @@
 Put your Project 5 brief explanation, as directed, here.
+
+I am accessing the Tumblr API. 
+- Query: I would like to find the last 20 text posts published by the New York Yankees and the Peace Corps, respectively.
+- File description: Each user will be a separate CSV file (2 CSV files total)
+- CSV set up: Each text post record in the CSV will include the post_url, the date, format, and tags
+	- Extra if I have time: Convert html posts to text so I can display text
+- URL for the API: api.tumblr.com
+- URL describing authentication process: https://www.tumblr.com/docs/en/api/v2#auth
+	- No authentication needed exactly because everyone can access API. But it does go through OAuth1, so you need an API key
