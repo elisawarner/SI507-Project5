@@ -20,6 +20,7 @@
 import requests_oauthlib
 import webbrowser
 import json
+import csv
 import secret_data # need properly formatted file, see example
 from datetime import datetime
 
@@ -127,13 +128,13 @@ def set_in_creds_cache(identifier, data, expire_in_days):
 
 ## OAuth1 API Constants - vary by API
 ### Private data in a hidden secret_data.py file
-CLIENT_KEY = secret_data.client_key # what Twitter calls Consumer Key
-CLIENT_SECRET = secret_data.client_secret # What Twitter calls Consumer Secret
+CLIENT_KEY = secret_data.client_key # what Tumblr calls Consumer Key
+CLIENT_SECRET = secret_data.client_secret # What Tumblr calls Consumer Secret
 
 ### Specific to API URLs, not private
-REQUEST_TOKEN_URL = "https://api.twitter.com/oauth/request_token"
-BASE_AUTH_URL = "https://api.twitter.com/oauth/authorize"
-ACCESS_TOKEN_URL = "https://api.twitter.com/oauth/access_token"
+REQUEST_TOKEN_URL = "https://www.tumblr.com/oauth/request_token"
+BASE_AUTH_URL = "https://www.tumblr.com/oauth/authorize"
+ACCESS_TOKEN_URL = "https://www.tumblr.com/oauth/access_token"
 
 
 def get_tokens(client_key=CLIENT_KEY, client_secret=CLIENT_SECRET,request_token_url=REQUEST_TOKEN_URL,base_authorization_url=BASE_AUTH_URL,access_token_url=ACCESS_TOKEN_URL,verifier_auto=True):
@@ -151,12 +152,12 @@ def get_tokens(client_key=CLIENT_KEY, client_secret=CLIENT_SECRET,request_token_
     webbrowser.open(auth_url) # For user to interact with & approve access of this app -- this script
 
     # Deal with required input, which will vary by API
-    if verifier_auto: # if the input is default (True), like Twitter
-        verifier = input("Please input the verifier:  ")
-    else:
-        redirect_result = input("Paste the full redirect URL here:  ")
-        oauth_resp = oauth_inst.parse_authorization_response(redirect_result) # returns a dictionary -- you may want to inspect that this works and edit accordingly
-        verifier = oauth_resp.get('oauth_verifier')
+#    if verifier_auto: # if the input is default (True), like Tumblr
+#        verifier = input("Please input the verifier:  ")
+#    else:
+    redirect_result = input("Paste the full redirect URL here:  ")
+    oauth_resp = oauth_inst.parse_authorization_response(redirect_result) # returns a dictionary -- you may want to inspect that this works and edit accordingly
+    verifier = oauth_resp.get('oauth_verifier')
 
     # Regenerate instance of oauth1session class with more data
     oauth_inst = requests_oauthlib.OAuth1Session(client_key, client_secret=client_secret, resource_owner_key=resource_owner_key, resource_owner_secret=resource_owner_secret, verifier=verifier)
@@ -215,6 +216,34 @@ def get_data_from_api(request_url,service_ident, params_diction, expire_in_days=
         set_in_data_cache(ident, data, expire_in_days) # sets authentication info, actual data, and expiration here in cache
     return data
 
+def save_to_csv(blog_name, body, post_url, date, tags):
+	csv_file = "%s.csv" % (blog_name)
+	with open(csv_file, 'a') as f:
+		row_writer = csv.writer(f, delimiter=',', quotechar='"')
+		row_writer.writerow([body, post_url, date, tags])
+
+def wrapper_call(blog_name):
+	# Invoke functions for Peace Corps
+    tumblr_search_baseurl = "https://api.tumblr.com/v2/blog/%s.tumblr.com/posts/text" % (blog_name) # calling tumblr api
+    tumblr_search_params = {'filter':
+    "text"}
+
+    tumblr_result = get_data_from_api(tumblr_search_baseurl,"Tumblr",tumblr_search_params) # Default expire_in_days
+    print(type(tumblr_result)) # searched tumblr for peace corps info
+
+    # Extract data for the csvs
+	# print(tumblr_result)
+    save_to_csv(blog_name, 'body', 'post_url', 'date', 'tags')
+
+    for post in tumblr_result['response']['posts']:
+    	body = post['summary']
+    	post_url = post['post_url']
+    	date = post['date']
+    	tags = post['tags']
+    	save_to_csv(blog_name, body, post_url, date, tags)
+
+####################################################
+
 # Actually running API
 if __name__ == "__main__":
     if not CLIENT_KEY or not CLIENT_SECRET:
@@ -224,14 +253,12 @@ if __name__ == "__main__":
         print("You need to fill in this API's specific OAuth2 URLs in this file.")
         exit()
 
-    # Invoke functions
-    twitter_search_baseurl = "https://api.twitter.com/1.1/search/tweets.json" # calling twitter api
-    twitter_search_params = {'q':
-    "University of Michigan", "count":4}
 
-    twitter_result = get_data_from_api(twitter_search_baseurl,"Twitter",twitter_search_params) # Default expire_in_days
-    print(type(twitter_result)) # searched twitter for U of M info
-
-
+# Invoke functions for Peace Corps
+wrapper_call('peacecorps')
+# Invoke functions for Wikipedia
+wrapper_call('wikipedia')
 
 ## Make sure to run your code and write CSV files by the end of the program.
+
+
