@@ -242,6 +242,9 @@ def wrapper_call(blog_name):
     	tags = post['tags']
     	save_to_csv(blog_name, body, post_url, date, tags)
 
+    if DEBUG == True:
+    	return(tumblr_result)
+
 ####################################################
 
 # Actually running API
