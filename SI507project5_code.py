@@ -233,7 +233,13 @@ def wrapper_call(blog_name):
 
     # Extract data for the csvs
 	# print(tumblr_result)
-    save_to_csv(blog_name, 'body', 'post_url', 'date', 'tags')
+    csv_file = "%s.csv" % (blog_name)
+    
+    try:
+        fhnd = open(csv_file)
+        fhnd.close()
+    except:
+        save_to_csv(blog_name, 'body', 'post_url', 'date', 'tags')
 
     for post in tumblr_result['response']['posts']:
     	body = post['summary']
@@ -253,7 +259,7 @@ if __name__ == "__main__":
         print("You need to fill in client_key and client_secret in the secret_data.py file.")
         exit()
     if not REQUEST_TOKEN_URL or not BASE_AUTH_URL:
-        print("You need to fill in this API's specific OAuth2 URLs in this file.")
+        print("You need to fill in this API's specific OAuth1 URLs in this file.")
         exit()
 
 
@@ -261,6 +267,7 @@ if __name__ == "__main__":
 wrapper_call('peacecorps')
 # Invoke functions for Wikipedia
 wrapper_call('wikipedia')
+# wrapper_call('everysinglewordspoken')
 
 ## Make sure to run your code and write CSV files by the end of the program.
 
